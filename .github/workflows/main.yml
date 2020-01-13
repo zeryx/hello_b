@@ -1,0 +1,35 @@
+
+name: CI
+
+on: [release]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repoA
+      uses: actions/checkout@master
+      with:
+        path: repoA
+    - name: Checkout repoB
+      uses: actions/checkout@master
+      with:
+        token: ${{ secrets.GIT_TOKEN }}
+        repository: ${{ secrets.ALGO_MASTER }}
+        path: repoB
+    - name: Move working directory A to B
+      run: |
+        mv -f repoA/src/* repoB/src 
+    - name: Commit files
+      run: |
+        cd repoB
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action Example"
+        git add *
+        git commit -m "Added changes from ${{ secrets.ALGO_MASTER }}"
+    - name: Push changes
+      uses: ad-m/github-push-action@v0.5.0
+      with:
+        github_token: ${{ secrets.GIT_TOKEN }}
+        repository: ${{ secrets.ALGO_MASTER }}
+        directory: repoB
+        force: True
